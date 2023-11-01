@@ -38,6 +38,8 @@ f1 = vel;
 f2 = Tinv * w;
 f3 = Rce*(u1+u2+u3+u4)/m*[0;0;1]+[0;0;-g];  % assume no external force
 f4 = inv(I)*[(u2-u4)*l, (u3-u1)*l, (u1-u2+u3-u4)*sig]'-cross(w,I*w); % no ext torque
+
+% map body axis to space axis in f4
 %% taking jacobians
 f = [f1; f2; f3; f4];
 A = jacobian(f, states);
@@ -66,15 +68,33 @@ Co_rank = rank(Co);
 
 %% open loop poles
 
-C = eye(12);
-D = zeros([12,4]);
+C = [eye(3),zeros(3,9)];
+D = zeros([3,4]);
 sys = ss(Anum_double, Bnum_double, C, D);
 poles = pole(sys);
 
 
 %%
 % assume I want all poles at -2
-p = -2*ones([12,1]);
+% p = -2*ones([12,1]);
+p = -13:-2;
 
 K = place(Anum_double, Bnum_double, p);
+
+% the above thing is working
+
+%% verify
+
+figure(1)
+step(sys)
+hold on
+Acl = Anum_double - Bnum_double*K;
+sys2 = ss(Acl, Bnum_double, C, D);
+figure(1)
+step(sys2)
+
+xlim([0 10])
+
+
+
 
